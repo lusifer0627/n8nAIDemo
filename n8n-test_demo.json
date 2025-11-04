@@ -1,0 +1,388 @@
+{
+  "name": "n8n-test_demo",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "line-webhook",
+        "options": {}
+      },
+      "id": "f594534c-ddef-461a-8e39-76ff9dbb0831",
+      "name": "Webhook from Line Message",
+      "type": "n8n-nodes-base.webhook",
+      "position": [
+        -144,
+        -688
+      ],
+      "webhookId": "238cd352-5b09-48b8-8b4b-2f70998197db",
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "={{$json[\"body\"][\"events\"][0][\"message\"][\"text\"]}}"
+            },
+            {
+              "content": "以幽默風趣的風格，並以繁體中文回應",
+              "role": "model"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        -816
+      ],
+      "id": "15fe96ba-f98b-4f02-a407-430c54afcd76",
+      "name": "Message a model"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "text": "幫我分析這張圖片",
+        "inputType": "binary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        1184,
+        -592
+      ],
+      "id": "13e0e8fb-45ca-4408-9e24-a95d8f5618c0",
+      "name": "Analyze an image",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "3q1UyL9aL8OyPrut",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "b63773bb-f010-4018-8142-240c9aaa4570",
+              "operator": {
+                "name": "filter.operator.equals",
+                "type": "string",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $json.body.events[0].type }}",
+              "rightValue": "message"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7582ac96-b629-473e-bb5c-382c3fea7a27",
+      "name": "驗證訊息是否合法",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        96,
+        -688
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "url": "=https://api-data.line.me/v2/bot/message/{{ $json.body.events[0].message.id }}/content",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "dbb1da7b-d3d7-4f41-a1cf-2007ace4c75d",
+      "name": "取得圖片",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        960,
+        -592
+      ],
+      "typeVersion": 4.2,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "0GHJO4DMl7jVO4x2",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/push",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "to",
+              "value": "={{$node['Webhook from Line Message'].json.body.events[0].source.userId}}"
+            },
+            {
+              "name": "messages[0].type",
+              "value": "=text"
+            },
+            {
+              "name": "messages[0].text",
+              "value": "={{$json.content.parts.map(p => p.text).join('\\n\\n')}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a703eab4-c94b-492b-826a-c413d93fe6fa",
+      "name": "Line : 回傳訊息2",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1408,
+        -592
+      ],
+      "typeVersion": 4.2,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "0GHJO4DMl7jVO4x2",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/push",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "to",
+              "value": "={{$node['Webhook from Line Message'].json.body.events[0].source.userId}}"
+            },
+            {
+              "name": "messages[0].type",
+              "value": "=text"
+            },
+            {
+              "name": "messages[0].text",
+              "value": "={{$json.content.parts.map(p => p.text).join('\\n\\n')}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "075ec7f1-debe-468f-a2ad-1b42aefa55fa",
+      "name": "Line : 回傳訊息1",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1408,
+        -816
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.events[0].message.type }}",
+                    "rightValue": "text",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "deffc65f-dfe0-4732-811f-5f425a27fbfb"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "06ee0e95-07f5-42a2-bc13-f3b115c820e7",
+                    "leftValue": "={{ $json.body.events[0].message.type }}",
+                    "rightValue": "image",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "image"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        384,
+        -704
+      ],
+      "id": "333aaaf2-9514-4d9e-b556-775a816161ec",
+      "name": "驗證訊息為文字還是圖像"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook from Line Message": {
+      "main": [
+        [
+          {
+            "node": "驗證訊息是否合法",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Line : 回傳訊息1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze an image": {
+      "main": [
+        [
+          {
+            "node": "Line : 回傳訊息2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "驗證訊息是否合法": {
+      "main": [
+        [
+          {
+            "node": "驗證訊息為文字還是圖像",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "取得圖片": {
+      "main": [
+        [
+          {
+            "node": "Analyze an image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "驗證訊息為文字還是圖像": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "取得圖片",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "23479c8e-783b-4634-8531-756817137c27",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d944840307082fc113a05c5f2c4a1d6269d417df477d4c39609755d71c03212f"
+  },
+  "id": "Qe6Zm2FuefUPRvsx",
+  "tags": [
+    {
+      "updatedAt": "2025-11-01T06:42:00.851Z",
+      "createdAt": "2025-11-01T06:42:00.851Z",
+      "id": "3OkMBPz1Gx4K5Q5j",
+      "name": "ai-agent"
+    },
+    {
+      "updatedAt": "2025-11-01T06:42:00.861Z",
+      "createdAt": "2025-11-01T06:42:00.861Z",
+      "id": "7tPeSQu6hKlrCrSM",
+      "name": "yt"
+    },
+    {
+      "updatedAt": "2025-11-01T06:42:00.871Z",
+      "createdAt": "2025-11-01T06:42:00.871Z",
+      "id": "ddQfXRGdD9v0A0Mi",
+      "name": "prd"
+    }
+  ]
+}
