@@ -1,4 +1,5 @@
 # n8nAIDemo
+透過在工作流中加入AI節點的方式，打造一個專屬的AI聊天機器人，也可以輸入圖像並讓模型分析內容。
 * Gemini文字-文字模板
 * Gemini圖像-文字模板
 
@@ -8,3 +9,6 @@
 
 * 圖像-文字
 <img width="1428" height="823" alt="image" src="https://github.com/user-attachments/assets/762ed1e6-10a4-41c7-b4a2-f6af81cf6d08" />
+
+# 教學影片
+[n8n + Line bot教學影片](https://youtu.be/prlin9oU-mY)
